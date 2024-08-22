@@ -1,6 +1,8 @@
 import { compare } from "bcrypt";
 import { User } from "../models/user.js";
-import { sendToken } from "../utils/feature.js";
+import { cookieOptions, sendToken } from "../utils/feature.js";
+import { TryCatch } from "../middlewares/error.js";
+import { Errorhandler } from "../utils/utility.js";
 
 const newUser = async (req, res) => {
   const { name, password, bio, username } = req.body;
@@ -29,13 +31,32 @@ const newUser = async (req, res) => {
   });
   sendToken(res, user, 201, "Success");
 };
-const login = async (req, res) => {
+const login = TryCatch( async (req,res,next) => {
   const { username, password } = req.body;
-  console.log(req.body);
   const user = await User.findOne({ username }).select("+password");
-  if (!user) return res.status(400).json({ message: "Invalid username" });
+  if (!user) return next(new Errorhandler("Invalid Credential",404));
   const isMatch = await compare(password, user.password);
-  if (!isMatch) return res.status(400).json({ message: "Invalid Password" });
+  if (!isMatch) return next(new Errorhandler("Invalid Credential",404));
   sendToken(res, user, 201, `welcome ${user.name}`);
-};
-export { login, newUser };
+});
+const getProfile = TryCatch(async(req,res) => {
+  const user =  await User.findById(req.user);
+   res.status(200).json({
+    success:true,
+    user
+   })
+});
+const logout = TryCatch(async(req,res) => {
+   res.status(200).cookie('alochana-token',"",{...cookieOptions,maxAge:0}).json({
+    success:true,
+    message:"Loged out Successfully"
+   })
+});
+const search = TryCatch(async(req,res) => {
+   const {name} = req.query;
+  res.status(200).json({
+   success:true,
+   message:name
+  })
+});
+export { login, newUser,getProfile,logout,search };
