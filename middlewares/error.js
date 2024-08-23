@@ -11,6 +11,7 @@ const TryCatch = (passedFunction) => async(req,res,next) => {
     try{
         passedFunction(req,res,next);
     }catch(error){
+      console.log("Inside TryCatch middleware : ", error);
         next(error);
     }
 
