@@ -29,4 +29,8 @@ const sendToken = (res, user, code, message) => {
 const emitEvent = (req,event,user,data) =>{
   console.log("Emiting event",event);
 }
-export { connectDb, sendToken,cookieOptions,emitEvent };
+
+const deleteChatFromCloudnary = async(public_id) => {
+
+};
+export { connectDb, sendToken,cookieOptions,emitEvent,deleteChatFromCloudnary };
