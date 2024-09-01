@@ -95,9 +95,9 @@ const getmyGroups = TryCatch(async (req, res, next) => {
 
 const addMembers = TryCatch(async (req, res, next) => {
   const { chatId, members } = req.body;
-  if (!members || members.length < 1) {
-    return next(new Errorhandler("Please select member to be add", 400));
-  }
+  // if (!members || members.length < 1) {
+  //   return next(new Errorhandler("Please select member to be add", 400));
+  // }
   const chats = await Chat.findById(chatId);
   if (!chats) {
     return next(new Errorhandler("Chat not found", 400));
@@ -210,9 +210,9 @@ const sendAttachments = TryCatch(async (req, res, next) => {
     return next(new Errorhandler("Chat not found", 400));
   }
   const files = req.files || [];
-  if (files.length < 1) {
-    return next(new Errorhandler("Please upload a file", 400));
-  }
+  // if (files.length < 1) {
+  //   return next(new Errorhandler("Please upload a file", 400));
+  // }
   const attachments = [];
   const messageForDB = {
     content: "",
