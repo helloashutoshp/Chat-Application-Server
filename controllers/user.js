@@ -6,6 +6,7 @@ import { cookieOptions, emitEvent, sendToken } from "../utils/feature.js";
 import { TryCatch } from "../middlewares/error.js";
 import { Errorhandler } from "../utils/utility.js";
 import { NEW_REQUEST, REFETCH_CHATS } from "../constants/event.js";
+import { getOtherMembers } from "../lib/helper.js";
 
 const newUser = async (req, res) => {
   const { name, password, bio, username } = req.body;
@@ -154,10 +155,37 @@ const getMyNotifications = TryCatch(async (req, res, next) => {
   });
 });
 const getMyFrnds = TryCatch(async (req, res, next) => {
- 
-  res.status(200).json({
-    success: true,
+  const chatId = req.query.chatId;
+  const chats = await Chat.find({
+    members: req.user,
+    groupChat: false,
+  }).populate("members", "name avtar");
+  // console.log(chats);
+
+  const friends = chats.map(({ members }) => {
+    const otherUser = getOtherMembers(members, req.user);
+    return {
+      _id: otherUser._id,
+      name: otherUser.name,
+      avtar: otherUser.avtar.url,
+    };
   });
+  if (chatId) {
+    const chat = await Chat.findById(chatId);
+    const availableFrnd = friends.filter(
+      (friend) => !chat.members.includes(friend._id)
+    );
+    return res.status(200).json({
+      sucess:true,
+      friends:availableFrnd
+    })
+  }
+  else{
+    return res.status(200).json({
+      sucess:true,
+      friends
+    })
+  }
 });
 export {
   login,
@@ -168,5 +196,5 @@ export {
   sendRequest,
   acceptFrndRequest,
   getMyNotifications,
-  getMyFrnds
+  getMyFrnds,
 };
