@@ -26,7 +26,7 @@ const schema = new Schema(
     ],
   },
   {
-    timeseries: true,
+    timestamps: true,
   }
 );
 
