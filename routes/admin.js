@@ -1,9 +1,10 @@
 import express from "express";
-import { allChats, allMessages, allUsers, getDashboardStats } from "../controllers/admin.js";
+import { adminLogin, adminLogout, allChats, allMessages, allUsers, getDashboardStats } from "../controllers/admin.js";
+import { adminValidator, validateHandler } from "../lib/validator.js";
 const app = express.Router();
 app.get("/");
-app.post("/verify");
-app.get("/logout");
+app.post("/verify",adminValidator(),validateHandler,adminLogin);
+app.get("/logout",adminLogout);
 app.get("/users",allUsers);
 app.get("/chats",allChats);
 app.get("/messages",allMessages);

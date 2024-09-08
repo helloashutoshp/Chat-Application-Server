@@ -2,6 +2,33 @@ import { TryCatch } from "../middlewares/error.js";
 import { Chat } from "../models/chat.js";
 import { User } from "../models/user.js";
 import { Message } from "../models/message.js";
+import { Errorhandler } from "../utils/utility.js";
+import jwt from "jsonwebtoken";
+import { cookieOptions } from "../utils/feature.js";
+
+const adminLogin = TryCatch(async (req, res, next) => {
+  const { secretKey } = req.body;
+  const adminSecretkey = process.env.ADMIN_SECRET_KEY;
+  const isMatch = secretKey == adminSecretkey;
+  if (!isMatch) {
+    return next(new Errorhandler("Invalid Crendential", 401));
+  }
+  const token = jwt.sign(secretKey, process.env.JWT_SECRET);
+  return res.status(200).cookie("admin-secret-key", token, cookieOptions).json({
+    success: true,
+    message: "Welcome Boss",
+  });
+});
+
+const adminLogout = TryCatch(async (req, res, next) => {
+  return res
+    .status(200)
+    .cookie("admin-secret-key", "", { ...cookieOptions, maxAge: 0 })
+    .json({
+      success: true,
+      message: "logedout successfully",
+    });
+});
 
 const allUsers = TryCatch(async (req, res) => {
   const user = await User.find({});
@@ -112,8 +139,8 @@ const getDashboardStats = TryCatch(async (req, res) => {
   last7DaysMessages.forEach((message) => {
     const indexApprox =
       (today.getTime() - message.createdAt.getTime()) / dayInMiliSeconds;
-      const index = Math.floor(indexApprox);
-      messages[6-index]++;
+    const index = Math.floor(indexApprox);
+    messages[6 - index]++;
   });
   return res.status(200).json({
     success: true,
@@ -122,4 +149,11 @@ const getDashboardStats = TryCatch(async (req, res) => {
   });
 });
 
-export { allUsers, allChats, allMessages, getDashboardStats };
+export {
+  adminLogin,
+  adminLogout,
+  allUsers,
+  allChats,
+  allMessages,
+  getDashboardStats,
+};
