@@ -30,6 +30,12 @@ const adminLogout = TryCatch(async (req, res, next) => {
     });
 });
 
+const getAdminData = TryCatch(async (req, res, next) => {
+  return res.status(200).json({
+    admin: true,
+  });
+});
+
 const allUsers = TryCatch(async (req, res) => {
   const user = await User.find({});
   const transformUser = await Promise.all(
@@ -156,4 +162,5 @@ export {
   allChats,
   allMessages,
   getDashboardStats,
+  getAdminData
 };

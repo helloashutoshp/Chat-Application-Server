@@ -202,6 +202,13 @@ const leaveGroup = TryCatch(async (req, res, next) => {
 
 const sendAttachments = TryCatch(async (req, res, next) => {
   const { chatId } = req.body;
+  const files = req.files || [];
+  if (files.length < 1) {
+    return next(new Errorhandler("Please upload a file", 400));
+  }
+  if (files.length > 5) {
+    return next(new Errorhandler("Maximun file upload is 5", 400));
+  }
   const [chat, me] = await Promise.all([
     Chat.findById(chatId),
     User.findById(req.user, "name"),
@@ -209,13 +216,10 @@ const sendAttachments = TryCatch(async (req, res, next) => {
   if (!chat) {
     return next(new Errorhandler("Chat not found", 400));
   }
-  const files = req.files || [];
-  // if (files.length < 1) {
-  //   return next(new Errorhandler("Please upload a file", 400));
-  // }
+  
   const attachments = [];
   const messageForDB = {
-    content: "",
+    content: "",  
     attachments,
     sender: req.user,
     chat: chatId,

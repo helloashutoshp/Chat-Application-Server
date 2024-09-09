@@ -1,10 +1,12 @@
 import express from "express";
-import { adminLogin, adminLogout, allChats, allMessages, allUsers, getDashboardStats } from "../controllers/admin.js";
+import { adminLogin, adminLogout, allChats, allMessages, allUsers, getAdminData, getDashboardStats } from "../controllers/admin.js";
 import { adminValidator, validateHandler } from "../lib/validator.js";
+import { isAdmin } from "../middlewares/auth.js";
 const app = express.Router();
-app.get("/");
 app.post("/verify",adminValidator(),validateHandler,adminLogin);
 app.get("/logout",adminLogout);
+app.use(isAdmin);
+app.get("/",getAdminData);
 app.get("/users",allUsers);
 app.get("/chats",allChats);
 app.get("/messages",allMessages);

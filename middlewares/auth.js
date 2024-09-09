@@ -10,4 +10,19 @@ const isAuthenticate = (req,res,next) => {
   req.user = decodeToken._id;
   next();
 }
-export {isAuthenticate};
+
+const isAdmin = (req,res,next) => {
+  const token  = req.cookies['admin-secret-key'];
+  if(!token){
+    return next(new Errorhandler('Tu admin nahi he',401))
+  }
+  const decodeToken = jwt.verify(token,process.env.JWT_SECRET);
+  // const adminSecretkey = process.env.ADMIN_SECRET_KEY;
+  // const isMatch = secretKey == adminSecretkey;
+  // if (!isMatch) {
+  //   return next(new Errorhandler("Invalid Crendential", 401));
+  // }
+  next();
+}
+
+export {isAuthenticate,isAdmin};

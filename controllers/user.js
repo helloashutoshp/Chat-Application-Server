@@ -8,10 +8,13 @@ import { Errorhandler } from "../utils/utility.js";
 import { NEW_REQUEST, REFETCH_CHATS } from "../constants/event.js";
 import { getOtherMembers } from "../lib/helper.js";
 
-const newUser = async (req, res) => {
+const newUser = TryCatch(async (req, res, next) => {
   const { name, password, bio, username } = req.body;
   console.log(req.body);
-
+  const file = req.file;
+  if (!file) {
+    return next(new Errorhandler("Please upload avtar", 400));
+  }
   const avtar = {
     public_id: "jdnn",
     url: "mnj",
@@ -34,7 +37,7 @@ const newUser = async (req, res) => {
     bio,
   });
   sendToken(res, user, 201, "Success");
-};
+});
 const login = TryCatch(async (req, res, next) => {
   const { username, password } = req.body;
   const user = await User.findOne({ username }).select("+password");
@@ -176,15 +179,14 @@ const getMyFrnds = TryCatch(async (req, res, next) => {
       (friend) => !chat.members.includes(friend._id)
     );
     return res.status(200).json({
-      sucess:true,
-      friends:availableFrnd
-    })
-  }
-  else{
+      sucess: true,
+      friends: availableFrnd,
+    });
+  } else {
     return res.status(200).json({
-      sucess:true,
-      friends
-    })
+      sucess: true,
+      friends,
+    });
   }
 });
 export {
