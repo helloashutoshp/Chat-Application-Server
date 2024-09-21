@@ -216,10 +216,10 @@ const sendAttachments = TryCatch(async (req, res, next) => {
   if (!chat) {
     return next(new Errorhandler("Chat not found", 400));
   }
-  
+
   const attachments = [];
   const messageForDB = {
-    content: "",  
+    content: "",
     attachments,
     sender: req.user,
     chat: chatId,
@@ -339,18 +339,18 @@ const getMessage = TryCatch(async (req, res) => {
   const skip = (page - 1) * resultPerPage;
   const [messages, totalMessageCount] = await Promise.all([
     Message.find({ chat: chatId })
-      .sort({ createdAt: -1 })  
+      .sort({ createdAt: -1 })
       .skip(skip)
       .limit(resultPerPage)
       .populate("sender", "name avtar")
       .lean(),
-      Message.countDocuments({chat:chatId})
+    Message.countDocuments({ chat: chatId }),
   ]);
-  const totalMessage = Math.ceil(totalMessageCount/resultPerPage);
+  const totalMessage = Math.ceil(totalMessageCount / resultPerPage);
   return res.status(200).json({
     success: true,
     message: messages.reverse(),
-    page:totalMessage
+    page: totalMessage,
   });
 });
 export {
