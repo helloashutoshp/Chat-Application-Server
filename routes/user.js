@@ -34,7 +34,7 @@ app.put(
   validateHandler,
   acceptFrndRequest
 );
-app.get("/getMyNotifications", getMyNotifications);
+app.get("/getmynotifications", getMyNotifications);
 app.get("/getMyFrnds", getMyFrnds);
 
 export default app;

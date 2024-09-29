@@ -2,7 +2,12 @@ import { compare } from "bcrypt";
 import { User } from "../models/user.js";
 import { Chat } from "../models/chat.js";
 import { Request } from "../models/request.js";
-import { cookieOptions, emitEvent, sendToken } from "../utils/feature.js";
+import {
+  cookieOptions,
+  emitEvent,
+  fileUploadToCloudinary,
+  sendToken,
+} from "../utils/feature.js";
 import { TryCatch } from "../middlewares/error.js";
 import { Errorhandler } from "../utils/utility.js";
 import { NEW_REQUEST, REFETCH_CHATS } from "../constants/event.js";
@@ -10,14 +15,17 @@ import { getOtherMembers } from "../lib/helper.js";
 
 const newUser = TryCatch(async (req, res, next) => {
   const { name, password, bio, username } = req.body;
-  console.log(req.body);
+  // console.log(req.body);
   const file = req.file;
+  // console.log('file',file);
   if (!file) {
     return next(new Errorhandler("Please upload avtar", 400));
   }
+  const result = await fileUploadToCloudinary([file]);
+  console.log(result);
   const avtar = {
-    public_id: "jdnn",
-    url: "mnj",
+    public_id: result[0].public_id,
+    url: result[0].url,
   };
 
   const existingUser = await User.findOne({ username: username });
@@ -36,7 +44,7 @@ const newUser = TryCatch(async (req, res, next) => {
     avtar,
     bio,
   });
-  sendToken(res, user, 201, "Success");
+  sendToken(res, user, 201, "Signed In Successfully");
 });
 const login = TryCatch(async (req, res, next) => {
   const { username, password } = req.body;
@@ -63,24 +71,32 @@ const logout = TryCatch(async (req, res) => {
       message: "Loged out Successfully",
     });
 });
+
 const search = TryCatch(async (req, res) => {
   const { name = "" } = req.query;
   const myChats = await Chat.find({ groupChat: false, members: req.user });
   const allUserFromChats = myChats.map((chat) => chat.members).flat();
-  const allUserexceptMeandFrnd = await User.find({
-    _id: { $nin: allUserFromChats },
-    name: { $regex: name, $options: "i" },
-  });
-  const user = allUserexceptMeandFrnd.map(({ _id, name, avtar }) => ({
-    _id,
-    name,
-    avtar: avtar.url,
-  }));
-  res.status(200).json({
-    success: true,
-    message: user,
-  });
-});
+  const allUserexceptMeandFrnd = await User.find(
+      {
+        _id: { $nin: allUserFromChats },
+        name: { $regex: name, $options: "i" },
+      }
+    );
+    const user = allUserexceptMeandFrnd.map(({ _id, name, avtar }) => (
+      {
+        _id,
+        name,
+        avtar: avtar.url,
+      }
+    ));
+
+    res.status(200).json({
+      success: true,
+      users: user,
+    });
+  }
+);
+
 const sendRequest = TryCatch(async (req, res, next) => {
   const { userId } = req.body;
   const request = await Request.findOne({
