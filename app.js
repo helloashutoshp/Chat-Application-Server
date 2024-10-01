@@ -15,6 +15,8 @@ import { Message } from "./models/message.js";
 import { log } from "console";
 import { v2 as cloudinary } from "cloudinary";
 import cors from "cors";
+import { corsOptions } from "./constants/config.js";
+import { socketAuthenticate } from "./middlewares/auth.js";
 dotenv.config({
   path: "./.env",
 });
@@ -22,36 +24,36 @@ const mongoURI = process.env.MONGO_URI;
 const port = process.env.PRO || 3001;
 connectDb(mongoURI);
 cloudinary.config({
-  cloud_name:process.env.CLOUDINARY_CLOUD_NAME,
-  api_key:process.env.CLOUDINARY_API_KEY,
-  api_secret:process.env.CLOUDINARY_API_SECRET
-})
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 const userSocketIDs = new Map();
 // createuser(10);
 const app = express();
 const server = createServer(app);
-const io = new Server(server, {});
+const io = new Server(server, { cors: corsOptions });
 app.use(express.json());
 app.use(cookieParser());
-app.use(
-  cors({
-    origin: "http://localhost:3000",
-    credentials: true,
-  })
-);
+app.use(cors(corsOptions));
 app.use("/api/v1/user", userRoute);
 app.use("/api/v1/chat", chatRoute);
 app.use("/api/v1/admin", adminRoute);
 app.get("/", (req, res) => {
   res.send("hi");
 });
-io.use((socket, next) => {});
+io.use((socket, next) => {
+  cookieParser()(
+    socket.request,
+    socket.request.res,
+    async (err) => await socketAuthenticate(err, socket, next)
+  );
+});
 io.on("connection", (socket) => {
-  const user = {
-    _id: "kdjksfk",
-    name: "kdkjfkj",
-  };
+  // console.log(socket);
+  const user = socket.user;
+  // console.log("user",user);
   userSocketIDs.set(user._id.toString(), socket.id);
   console.log(userSocketIDs);
   socket.on(NEW_MESSAGE, async ({ chatId, members, message }) => {

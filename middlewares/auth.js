@@ -1,3 +1,4 @@
+import { User } from "../models/user.js";
 import { Errorhandler } from "../utils/utility.js";
 import { TryCatch } from "./error.js";
 import jwt from 'jsonwebtoken';
@@ -25,4 +26,26 @@ const isAdmin = (req,res,next) => {
   next();
 }
 
-export {isAuthenticate,isAdmin};
+const socketAuthenticate = async(err,socket, next,) => {
+try {
+  if(err) return next(err);
+  const authToken = socket.request.cookies['alochana-token'];
+  if(!authToken){
+    return next(new Errorhandler("Please login to access this route",401));
+  }
+  const docodeData = jwt.verify(authToken,process.env.JWT_SECRET);
+  const user = await User.findById(docodeData._id);
+  if(!user){
+    return next(new Errorhandler("Please login to access this route",401));
+  }
+  socket.user = user;
+  return next();
+
+  
+} catch (error) {
+  console.log(error);
+  return next(new Errorhandler("Please login to access route",401));
+}
+}
+
+export {isAuthenticate,isAdmin,socketAuthenticate};

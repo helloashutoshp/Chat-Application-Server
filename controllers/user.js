@@ -122,7 +122,6 @@ const acceptFrndRequest = TryCatch(async (req, res, next) => {
   const request = await Request.findById(requestId)
     .populate("sender", "name")
     .populate("receiver", "name");
-  console.log(request);
   if (!request) {
     return next(new Errorhandler("Request not found", 404));
   }
@@ -133,13 +132,12 @@ const acceptFrndRequest = TryCatch(async (req, res, next) => {
   }
   if (!accept) {
     await request.deleteOne();
-    res.status(200).json({
-      success: true,
+    return res.status(200).json({
+      success: false,
       message: "Friend request rejected",
     });
   }
-  console.log(request.sender);
-  console.log(request.receiver);
+
 
   const members = [request.sender._id, request.receiver.id];
   await Promise.all([
@@ -150,9 +148,9 @@ const acceptFrndRequest = TryCatch(async (req, res, next) => {
     request.deleteOne(),
   ]);
   emitEvent(req, REFETCH_CHATS, members);
-  res.status(200).json({
+ return res.status(200).json({
     success: true,
-    message: "Freind requesr accepted",
+    message: "Freind request accepted",
     sender_id: request.sender,
   });
 });
